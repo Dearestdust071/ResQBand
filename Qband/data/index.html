@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        input, select, textarea { margin: 10px; padding: 8px; width: 80%; max-width: 300px; }
+        button { padding: 10px; background: blue; color: white; border: none; cursor: pointer; }
+        .codigo-info { display: none; margin-top: 10px; }
+        .codigo-info textarea { width: 80%; max-width: 300px; }
+        .datos-container { margin-top: 20px; text-align: left; }
+        .datos-container h3 { font-size: 18px; }
+        .datos-container p { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h2>Res Q Band</h2>
+
+    <label>Nombre Completo:</label>
+    <input type="text" id="nombre"><br>
+
+    <label>Número de Contacto:</label>
+    <input type="number" id="numero"><br>
+
+    <label>Código de Emergencia Rojo:</label>
+    <textarea id="codigo-rojo" placeholder="Escribe la descripción del código rojo..."></textarea>
+    <br>
+
+    <label>Código de Emergencia Amarillo:</label>
+    <textarea id="codigo-amarillo" placeholder="Escribe la descripción del código amarillo..."></textarea>
+    <br>
+
+
+    <button onclick="guardarDatos()">Guardar Datos</button>
+
+    <div class="datos-container">
+        <h3>Datos Guardados:</h3>
+        <div id="datos"></div>
+    </div>
+
+    <script>
+        function cargarDatos() {
+            fetch('/datos')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("nombre").value = data.nombre_completo || "";
+                    document.getElementById("numero").value = data.numero_contacto || "";
+                    document.getElementById("codigo-rojo").value = data.CodigoRojo || "";
+                    document.getElementById("codigo-amarillo").value = data.CodigoAmarillo || "";
+                    // Se removio el apartado de alergias para el perfilado del usuario final
+                    // Actualizar la visualización de los datos
+                    mostrarDatos(data);
+                })
+                .catch(error => console.error("Error al cargar datos:", error));
+        }
+
+        function guardarDatos() {
+            const datos = {
+                nombre_completo: document.getElementById("nombre").value,
+                numero_contacto: document.getElementById("numero").value,
+                CodigoRojo: document.getElementById("codigo-rojo").value,
+                CodigoAmarillo: document.getElementById("codigo-amarillo").value,
+            };
+
+            fetch('/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensaje);
+                cargarDatos(); // Recargar datos después de guardar
+            })
+            .catch(error => console.error("Error al guardar datos:", error));
+        }
+
+        function mostrarDatos(data) {
+            const datosDiv = document.getElementById("datos");
+            datosDiv.innerHTML = `
+                <p><strong>Nombre Completo:</strong> ${data.nombre_completo || 'No disponible'}</p>
+                <p><strong>Número de Contacto:</strong> ${data.numero_contacto || 'No disponible'}</p>
+                <p><strong>Código de Emergencia Rojo:</strong> ${data.CodigoRojo || 'No disponible'}</p>
+                <p><strong>Código de Emergencia Amarillo:</strong> ${data.CodigoAmarillo || 'No disponible'}</p>
+            `;
+        }
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
